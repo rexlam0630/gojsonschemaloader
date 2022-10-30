@@ -24,7 +24,7 @@
 //
 // created          01-01-2015
 
-package gojsonschema
+package gojsonschemaloader
 
 import (
 	"log"

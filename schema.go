@@ -24,16 +24,15 @@
 //
 // created          26-02-2013
 
-package gojsonschema
+package gojsonschemaloader
 
 import (
 	"errors"
+	"github.com/xeipuuv/gojsonreference"
 	"math/big"
 	"reflect"
 	"regexp"
 	"text/template"
-
-	"github.com/xeipuuv/gojsonreference"
 )
 
 var (
@@ -68,12 +67,161 @@ func (d *Schema) SetRootSchemaName(name string) {
 	d.rootSchema.property = name
 }
 
+func (d *Schema) GetExportSchema() *ExportSchema {
+	return d.rootSchema.export(true)
+}
+
+func (s *subSchema) export(root bool) *ExportSchema {
+	draft := (*string)(nil)
+	id := (*string)(nil)
+	title := (*string)(nil)
+	description := (*string)(nil)
+	properties := make(map[string]*ExportSchema)
+	patternProperties := make(map[string]*ExportSchema)
+	propertyNames := (*ExportSchema)(nil)
+	uniqueItems := (*bool)(nil)
+	contains := (*ExportSchema)(nil)
+
+	if root {
+		tmpDraft := drafts.GetSchemaURL(*s.draft)
+		draft = &tmpDraft
+
+		tmpId := s.id.String()
+		id = &tmpId
+
+		title = s.title
+		description = s.description
+	}
+
+	if s.propertiesChildren != nil {
+		for _, p := range s.propertiesChildren {
+			if p.refSchema != nil {
+				properties[p.property] = p.refSchema.export(false)
+			} else {
+				properties[p.property] = p.export(false)
+			}
+		}
+	}
+
+	if s.patternProperties != nil {
+		for _, p := range s.patternProperties {
+			if p.refSchema != nil {
+				patternProperties[p.property] = p.refSchema.export(false)
+			} else {
+				patternProperties[p.property] = p.export(false)
+			}
+		}
+	}
+
+	if s.propertyNames != nil {
+		propertyNames = s.propertyNames.export(false)
+	}
+
+	if s.uniqueItems == true {
+		uniqueItems = &s.uniqueItems
+	}
+
+	if s.contains != nil {
+		contains = s.contains.export(false)
+	}
+
+	pattern := (*string)(nil)
+	if s.pattern != nil {
+		tmpPattern := s.pattern.String()
+		pattern = &tmpPattern
+	}
+
+	format := (*string)(nil)
+	if len(s.format) > 0 {
+		format = &s.format
+	}
+
+	oneOf := make([]*ExportSchema, 0)
+	if s.oneOf != nil {
+		for _, p := range s.oneOf {
+			oneOf = append(oneOf, p.export(false))
+		}
+	}
+
+	anyOf := make([]*ExportSchema, 0)
+	if s.anyOf != nil {
+		for _, p := range s.anyOf {
+			anyOf = append(anyOf, p.export(false))
+		}
+	}
+
+	allOf := make([]*ExportSchema, 0)
+	if s.allOf != nil {
+		for _, p := range s.allOf {
+			allOf = append(allOf, p.export(false))
+		}
+	}
+
+	not := (*ExportSchema)(nil)
+	if s.not != nil {
+		not = s.not.export(false)
+	}
+
+	_if := (*ExportSchema)(nil)
+	if s._if != nil {
+		_if = s._if.export(false)
+	}
+
+	_then := (*ExportSchema)(nil)
+	if s._then != nil {
+		_then = s._then.export(false)
+	}
+
+	_else := (*ExportSchema)(nil)
+	if s._else != nil {
+		_else = s._else.export(false)
+	}
+
+	return &ExportSchema{
+		Draft:                draft,
+		Id:                   id,
+		Title:                title,
+		Description:          description,
+		Types:                s.types.types,
+		Properties:           properties,
+		MultipleOf:           s.multipleOf,
+		Maximum:              s.maximum,
+		ExclusiveMaximum:     s.exclusiveMaximum,
+		Minimum:              s.minimum,
+		ExclusiveMinimum:     s.exclusiveMinimum,
+		MinLength:            s.minLength,
+		MaxLength:            s.maxLength,
+		Pattern:              pattern,
+		Format:               format,
+		MinProperties:        s.minProperties,
+		MaxProperties:        s.maxProperties,
+		Required:             s.required,
+		Dependencies:         s.dependencies,
+		AdditionalProperties: s.additionalProperties,
+		PatternProperties:    patternProperties,
+		PropertyNames:        propertyNames,
+		MaxItems:             s.maxItems,
+		MinItems:             s.minItems,
+		UniqueItems:          uniqueItems,
+		Contains:             contains,
+		AdditionalItems:      s.additionalItems,
+		Const:                s._const,
+		Enum:                 s.enum,
+		OneOf:                oneOf,
+		AnyOf:                anyOf,
+		AllOf:                allOf,
+		Not:                  not,
+		If:                   _if,
+		Then:                 _then,
+		Else:                 _else,
+	}
+}
+
 // Parses a subSchema
 //
 // Pretty long function ( sorry :) )... but pretty straight forward, repetitive and boring
 // Not much magic involved here, most of the job is to validate the key names and their values,
 // then the values are copied into subSchema struct
-//
 func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema) error {
 
 	if currentSchema.draft == nil {

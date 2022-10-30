@@ -1,4 +1,4 @@
-package gojsonschema
+package gojsonschemaloader
 
 import (
 	"bytes"

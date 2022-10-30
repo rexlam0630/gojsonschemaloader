@@ -24,7 +24,7 @@
 //
 // created          01-02-2015
 
-package gojsonschema
+package gojsonschemaloader
 
 import (
 	"bytes"

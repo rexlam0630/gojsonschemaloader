@@ -23,7 +23,7 @@
 //
 // created          26-02-2013
 
-package gojsonschema
+package gojsonschemaloader
 
 import (
 	"encoding/json"
@@ -88,19 +88,24 @@ func marshalWithoutNumber(value interface{}) (*string, error) {
 	// One way to eliminate these differences is to decode and encode the JSON one more time without Decoder.UseNumber
 	// so that these differences in representation are removed
 
-	jsonString, err := marshalToJSONString(value)
-	if err != nil {
-		return nil, err
+	if reflect.TypeOf(value).Name() == "string" {
+		s := value.(string)
+		return &s, nil
+	} else {
+		jsonString, err := marshalToJSONString(value)
+		if err != nil {
+			return nil, err
+		}
+
+		var document interface{}
+
+		err = json.Unmarshal([]byte(*jsonString), &document)
+		if err != nil {
+			return nil, err
+		}
+
+		return marshalToJSONString(document)
 	}
-
-	var document interface{}
-
-	err = json.Unmarshal([]byte(*jsonString), &document)
-	if err != nil {
-		return nil, err
-	}
-
-	return marshalToJSONString(document)
 }
 
 func isJSONNumber(what interface{}) bool {

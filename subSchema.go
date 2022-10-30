@@ -24,7 +24,7 @@
 //
 // created          27-02-2013
 
-package gojsonschema
+package gojsonschemaloader
 
 import (
 	"github.com/xeipuuv/gojsonreference"
