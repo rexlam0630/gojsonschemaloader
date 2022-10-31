@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package gojsonschema
+package gojsonschemaloader
 
 import (
 	"encoding/json"
@@ -40,7 +40,7 @@ type jsonSchemaTestCase struct {
 	Valid       bool        `json:"valid"`
 }
 
-//Skip any directories not named appropiately
+// Skip any directories not named appropiately
 // filepath.Walk will also visit files in the root of the test directory
 var testDirectories = regexp.MustCompile(`(draft\d+)`)
 var draftMapping = map[string]Draft{
