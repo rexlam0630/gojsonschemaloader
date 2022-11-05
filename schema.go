@@ -81,6 +81,7 @@ func (s *subSchema) export(root bool) *ExportSchema {
 	propertyNames := (*ExportSchema)(nil)
 	uniqueItems := (*bool)(nil)
 	contains := (*ExportSchema)(nil)
+	additionalProperties := (interface{})(nil)
 
 	if root {
 		tmpDraft := drafts.GetSchemaURL(*s.draft)
@@ -123,6 +124,15 @@ func (s *subSchema) export(root bool) *ExportSchema {
 
 	if s.contains != nil {
 		contains = s.contains.export(false)
+	}
+
+	if s.additionalProperties != nil {
+		if isKind(s.additionalProperties, reflect.Bool) {
+			additionalProperties = &s.additionalProperties
+		} else {
+			ss := s.additionalProperties.(*subSchema)
+			additionalProperties = ss.export(false)
+		}
 	}
 
 	pattern := (*string)(nil)
@@ -197,7 +207,7 @@ func (s *subSchema) export(root bool) *ExportSchema {
 		MaxProperties:        s.maxProperties,
 		Required:             s.required,
 		Dependencies:         s.dependencies,
-		AdditionalProperties: s.additionalProperties,
+		AdditionalProperties: additionalProperties,
 		PatternProperties:    patternProperties,
 		PropertyNames:        propertyNames,
 		MaxItems:             s.maxItems,
