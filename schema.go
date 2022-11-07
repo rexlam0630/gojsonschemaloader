@@ -77,6 +77,7 @@ func (s *subSchema) export(root bool) *ExportSchema {
 	title := (*string)(nil)
 	description := (*string)(nil)
 	properties := make(map[string]*ExportSchema)
+	items := make(map[string]*ExportSchema)
 	patternProperties := make(map[string]*ExportSchema)
 	propertyNames := (*ExportSchema)(nil)
 	uniqueItems := (*bool)(nil)
@@ -100,6 +101,16 @@ func (s *subSchema) export(root bool) *ExportSchema {
 				properties[p.property] = p.refSchema.export(false)
 			} else {
 				properties[p.property] = p.export(false)
+			}
+		}
+	}
+
+	if s.itemsChildren != nil {
+		for _, p := range s.itemsChildren {
+			if p.refSchema != nil {
+				items[p.property] = p.refSchema.export(false)
+			} else {
+				items[p.property] = p.export(false)
 			}
 		}
 	}
@@ -194,6 +205,7 @@ func (s *subSchema) export(root bool) *ExportSchema {
 		Description:          description,
 		Types:                s.types.types,
 		Properties:           properties,
+		Items:                items,
 		MultipleOf:           s.multipleOf,
 		Maximum:              s.maximum,
 		ExclusiveMaximum:     s.exclusiveMaximum,

@@ -12,6 +12,7 @@ type ExportSchema struct {
 	// Common Properties
 	Types                []string                 `json:"type,omitempty"`
 	Properties           map[string]*ExportSchema `json:"properties,omitempty"`
+	Items                map[string]*ExportSchema `json:"items,omitempty"`
 	MultipleOf           *big.Rat                 `json:"multipleOf,omitempty"`
 	Maximum              *big.Rat                 `json:"maximum,omitempty"`
 	ExclusiveMaximum     *big.Rat                 `json:"exclusiveMaximum,omitempty"`
