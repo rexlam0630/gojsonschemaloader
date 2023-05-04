@@ -92,6 +92,9 @@ func (s *subSchema) export(root bool) *ExportSchema {
 		id = &tmpId
 
 		title = s.title
+	}
+
+	if s.description != nil {
 		description = s.description
 	}
 
